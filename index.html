@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reporte TPM</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #eee; min-height: 100vh; padding: 16px; }
+h1 { text-align: center; color: #00d4ff; margin-bottom: 4px; font-size: 1.5rem; letter-spacing: 1px; }
+.subtitle { text-align: center; color: #888; font-size: 0.82rem; margin-bottom: 18px; }
+.card { background: #16213e; border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.35); }
+.card-title { font-size: 0.78rem; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.turno-banner {
+  background: linear-gradient(135deg, #0f3460, #1a1a2e);
+  border: 2px solid #00d4ff44; border-radius: 10px;
+  padding: 12px 16px; text-align: center; margin-bottom: 8px;
+}
+.turno-banner .turno-nombre { font-size: 1.1rem; font-weight: 700; color: #00d4ff; }
+.turno-banner .turno-info { font-size: 0.75rem; color: #888; margin-top: 4px; }
+.turno-banner .turno-rest { font-size: 0.7rem; color: #00ffaa; margin-top: 2px; }
+.turno-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.turno-btn { flex:1; min-width:80px; padding:9px 10px; border:2px solid #ffffff15; border-radius:10px; background:#0f3460; color:#666; cursor:not-allowed; font-size:0.85rem; font-weight:600; text-align:center; opacity:0.7; }
+.turno-btn.active { border-color:#00d4ff; color:#00d4ff; background:#00d4ff15; opacity:1; box-shadow:0 0 12px #00d4ff22; }
+.dias-row { display:flex; gap:6px; flex-wrap:wrap; }
+.dia-chip { padding:6px 11px; border-radius:8px; border:2px solid #ffffff15; background:#0f3460; color:#aaa; cursor:pointer; font-size:0.82rem; font-weight:600; transition:all 0.2s; user-select:none; }
+.dia-chip.descanso { border-color:#ff444488; color:#ff6666; background:#ff000015; }
+.dia-chip.laboral  { border-color:#00d4ff55; color:#00d4ff; background:#00d4ff10; }
+.dia-chip.readonly { cursor: not-allowed; opacity: 0.85; }
+.dia-chip.readonly:hover { border-color:#ffffff15; color:#aaa; }
+.date-row { display:flex; align-items:center; gap:10px; }
+.date-row label { color:#888; font-size:0.88rem; white-space:nowrap; }
+input[type="date"] { background:#0f3460; color:#fff; border:1px solid #00d4ff33; border-radius:8px; padding:7px 12px; font-size:0.95rem; cursor:pointer; flex:1; }
+input[type="date"]:focus { outline:none; border-color:#00d4ff; }
+.check-row { display:flex; gap:10px; flex-wrap:wrap; }
+.check-item { display:flex; align-items:center; gap:7px; background:#0f3460; padding:8px 14px; border-radius:10px; cursor:pointer; border:2px solid transparent; transition:border 0.2s; }
+.check-item:hover { border-color:#ff444455; }
+.check-item input { width:16px; height:16px; accent-color:#ff4444; cursor:pointer; }
+.check-item span { font-size:0.88rem; }
+.result-wrap { border-radius:12px; padding:18px; text-align:center; transition:all 0.3s; }
+.result-wrap.ok     { background:linear-gradient(135deg,#0a4f3c,#0d7a5c); border:2px solid #00ffaa44; }
+.result-wrap.warn   { background:linear-gradient(135deg,#5a3200,#994f00); border:2px solid #ffaa0044; }
+.result-wrap.danger { background:linear-gradient(135deg,#5a0000,#990000); border:2px solid #ff000044; }
+.result-wrap.rest   { background:linear-gradient(135deg,#1a1a2e,#2a2a4e); border:2px solid #ffffff22; }
+.result-label { font-size:0.72rem; color:#aaa; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+.result-name  { font-size:2rem; font-weight:700; letter-spacing:2px; }
+.result-sub   { font-size:0.82rem; color:#ccc; margin-top:6px; }
+.result-ritmo { font-size:0.75rem; color:#888; margin-top:4px; }
+.tabla-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:0.83rem; min-width:340px; }
+th { background:#0f3460; color:#00d4ff; padding:9px 10px; text-align:left; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; }
+td { padding:8px 10px; border-bottom:1px solid #ffffff0d; }
+tr.hoy td { background:#00d4ff0d; }
+tr.hoy td:first-child { border-left:3px solid #00d4ff; }
+tr.desc td { opacity:0.38; }
+.badge { display:inline-block; padding:2px 8px; border-radius:20px; font-size:0.72rem; font-weight:700; }
+.badge-r { background:#00d4ff22; color:#00d4ff; }
+.badge-s { background:#ffaa0022; color:#ffaa00; }
+.badge-d { background:#ffffff11; color:#888; }
+.chip-dia { font-size:0.72rem; padding:1px 6px; border-radius:4px; }
+.chip-lab { background:#00ffaa22; color:#00ffaa; }
+.chip-des { background:#ff444422; color:#ff8888; }
+.edit-hint { text-align:center; font-size:0.7rem; color:#666; margin-top:8px; padding:4px 8px; background:#0f346033; border-radius:4px; }
+.edit-hint code { background:#0f3460; padding:1px 4px; border-radius:3px; font-family:monospace; color:#00d4ff; }
+</style>
+</head>
+<body>
+
+<h1>📋 Reporte TPM</h1>
+<p class="subtitle">Ciclo: 28 días Noche → 28 días Mañana → 28 días Mixto 🔁</p>
+
+<div class="card">
+  <div class="card-title">🔄 Turno actual (calculado automáticamente)</div>
+  <div class="turno-banner" id="turnoBanner">
+    <div class="turno-nombre" id="turnoNombre">Cargando...</div>
+    <div class="turno-info" id="turnoFechas"></div>
+    <div class="turno-rest" id="turnoDescansos"></div>
+  </div>
+  <div class="turno-btns" id="turnoBtns"></div>
+</div>
+
+<div class="card">
+  <div class="card-title">😴 Días de descanso <span id="descLabel" style="color:#ffaa00;font-size:0.7rem">según turno</span></div>
+  <div class="dias-row" id="diasRow"></div>
+  <div class="edit-hint" id="editHint">💡 ¿Ajustes? Consola: <code>activarEdicionManual()</code> o <code>setDiasDescansoPersonalizados({Noche: [1,2], Mañana: [5,6], Mixto: [0,5,6]})</code></div>
+</div>
+
+<div class="card">
+  <div class="date-row">
+    <label>📅 Fecha:</label>
+    <input type="date" id="fechaInput">
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">🚫 Marcar ausentes hoy</div>
+  <div class="check-row" id="checksContainer"></div>
+</div>
+
+<div class="card">
+  <div class="card-title">👷 Responsable del Reporte TPM</div>
+  <div class="result-wrap ok" id="resultBox">
+    <div class="result-label">Responsable hoy</div>
+    <div class="result-name" id="resultName">—</div>
+    <div class="result-sub"  id="resultSub"></div>
+    <div class="result-ritmo" id="resultRitmo"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">📆 Próximos 14 días</div>
+  <div class="tabla-wrap">
+    <table>
+      <thead><tr>
+        <th>Fecha</th><th>Día</th><th>Tipo</th><th>Ritmo</th><th>Responsable</th><th>Rol</th>
+      </tr></thead>
+      <tbody id="tablaProximos"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+// ⚙️ CONFIGURACIÓN BASE
+// ═══════════════════════════════════════════════════════════════════════
+const PERSONAS = ["Christian","Vicente","Alex","Julian"];
+const RITMOS = [
+  ["Christian","Vicente", "Alex",      "Julian"],
+  ["Vicente",  "Alex",    "Julian",    "Christian"],
+  ["Alex",     "Julian",  "Christian", "Vicente"],  // ← ANCLA: Ritmo 3
+  ["Julian",   "Christian","Vicente",  "Alex"],
+];
+
+// 🎯 Ancla: 11 mayo 2026 = Ritmo 3 (índice 2 = Alex)
+const ANCLA_RITMO = new Date(2026, 4, 11);
+const ANCLA_RITMO_IDX = 2;
+
+// 🔄 Ciclo de turnos
+const CYCLE_START = new Date(2025, 8, 15);
+const SHIFT_DURATION = 28;
+const SHIFTS = ["Noche", "Mañana", "Mixto"];
+
+// 🔹 CONFIGURACIÓN PERSONALIZADA DE DÍAS DE DESCANSO
+let TURNOS = {
+  "Noche":  { descanso:[0,1],    label:"Noche"  },
+  "Mañana": { descanso:[4,5],    label:"Mañana" },
+  "Mixto":  { descanso:[2,3,6],  label:"Mixto"  },
+};
+
+const DIA_NOMBRES = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+const STORAGE_KEY = 'tpmConfig';
+const ritmoCache = new Map();
+
+let turnoActual = calcularTurnoActual(new Date());
+let diasDescanso = [...TURNOS[turnoActual].descanso];
+let ausentes = [];
+let manualEditMode = false;
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+const fechaInput = document.getElementById("fechaInput");
+fechaInput.value = new Date().toISOString().slice(0,10);
+fechaInput.addEventListener("change", render);
+
+loadConfig();
+window.addEventListener('storage', (e) => {
+  if (e.key === STORAGE_KEY) { loadConfig(); render(); }
+});
+
+buildTurnoBanner();
+buildTurnoBtns();
+buildDiasRow();
+buildChecks();
+render();
+
+// ── FUNCIONES DE TURNO Y FECHAS ───────────────────────────────────────────
+function calcularTurnoActual(fecha) {
+  const diasDesdeInicio = Math.floor((midnight(fecha) - midnight(CYCLE_START)) / 86400000);
+  const bloque = Math.floor(diasDesdeInicio / SHIFT_DURATION);
+  const indiceTurno = ((bloque % SHIFTS.length) + SHIFTS.length) % SHIFTS.length;
+  return SHIFTS[indiceTurno];
+}
+
+function getTurnoPeriodo(fecha) {
+  const diasDesdeInicio = Math.floor((midnight(fecha) - midnight(CYCLE_START)) / 86400000);
+  const bloque = Math.floor(diasDesdeInicio / SHIFT_DURATION);
+  const inicioBloque = new Date(CYCLE_START);
+  inicioBloque.setDate(CYCLE_START.getDate() + bloque * SHIFT_DURATION);
+  const finBloque = new Date(inicioBloque);
+  finBloque.setDate(inicioBloque.getDate() + SHIFT_DURATION - 1);
+  return { inicio: inicioBloque, fin: finBloque };
+}
+
+function fmtFechaCorta(fecha) {
+  return fecha.toLocaleDateString('es-MX', { day: '2-digit', month: 'short' });
+}
+
+// ✅ Parseo seguro de fecha (evita desplazamiento por zona horaria)
+function parseInputDate(value) {
+  if (!value) return new Date();
+  const [y, m, d] = value.split('-').map(Number);
+  return new Date(y, m - 1, d, 12, 0, 0);
+}
+
+// 🔹 CORRECCIÓN: Función midnight para evitar problemas de zona horaria
+function midnight(d) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
+}
+
+// ── PERSISTENCIA ──────────────────────────────────────────────────────────
+function saveConfig() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ diasDescanso, ausentes, manualEditMode, TURNOS, lastUpdate: Date.now() })); }
+  catch(e) { console.warn("⚠️ Error guardando:", e); }
+}
+
+function loadConfig() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const cfg = JSON.parse(saved);
+      turnoActual = calcularTurnoActual(new Date());
+      if (!manualEditMode) diasDescanso = [...TURNOS[turnoActual].descanso];
+      else if (cfg.diasDescanso) diasDescanso = cfg.diasDescanso;
+      if (cfg.ausentes) ausentes = cfg.ausentes;
+      if (cfg.manualEditMode !== undefined) manualEditMode = cfg.manualEditMode;
+      if (cfg.TURNOS) TURNOS = cfg.TURNOS;
+    } else {
+      turnoActual = calcularTurnoActual(new Date());
+      diasDescanso = [...TURNOS[turnoActual].descanso];
+    }
+  } catch(e) {
+    turnoActual = calcularTurnoActual(new Date());
+    diasDescanso = [...TURNOS[turnoActual].descanso];
+  }
+  actualizarLabels();
+}
+
+function actualizarLabels() {
+  const label = document.getElementById("descLabel");
+  const hint = document.getElementById("editHint");
+  if (label) label.textContent = manualEditMode ? "✏️ edición manual" : "según turno";
+  if (hint) hint.style.display = manualEditMode ? "none" : "block";
+}
+
+// ── FUNCIÓN PARA PERSONALIZAR DÍAS DE DESCANSO ────────────────────────────
+function setDiasDescansoPersonalizados(config) {
+  TURNOS = {
+    "Noche":  { descanso: config.Noche || [0,1],    label:"Noche"  },
+    "Mañana": { descanso: config.Mañana || [4,5],  label:"Mañana" },
+    "Mixto":  { descanso: config.Mixto || [2,3,6], label:"Mixto"  }
+  };
+  turnoActual = calcularTurnoActual(new Date());
+  diasDescanso = [...TURNOS[turnoActual].descanso];
+  ritmoCache.clear();
+  saveConfig();
+  buildTurnoBanner();
+  buildTurnoBtns();
+  buildDiasRow();
+  render();
+  console.log("✅ Días de descanso personalizados aplicados:", TURNOS);
+}
+
+// ── BUILDERS ──────────────────────────────────────────────────────────────
+function buildTurnoBanner() {
+  const banner = document.getElementById("turnoBanner");
+  const nombre = document.getElementById("turnoNombre");
+  const fechas = document.getElementById("turnoFechas");
+  const descansos = document.getElementById("turnoDescansos");
+
+  const periodo = getTurnoPeriodo(new Date());
+  const restNames = TURNOS[turnoActual].descanso.map(d => DIA_NOMBRES[d].slice(0,3)).join(' • ');
+  const diasRestantes = Math.max(0, Math.ceil((periodo.fin - new Date()) / 86400000));
+
+  nombre.textContent = `🔄 ${TURNOS[turnoActual].label}`;
+  fechas.textContent = `${fmtFechaCorta(periodo.inicio)} → ${fmtFechaCorta(periodo.fin)} · ${diasRestantes} días restantes`;
+  descansos.textContent = `Descansos oficiales: ${restNames}`;
+
+  if (turnoActual === "Mixto") { banner.style.borderColor = "#00d4ff44"; nombre.style.color = "#00d4ff"; }
+  else if (turnoActual === "Noche") { banner.style.borderColor = "#0b3b66"; nombre.style.color = "#88ccff"; }
+  else { banner.style.borderColor = "#f6c24e44"; nombre.style.color = "#f6c24e"; }
+}
+
+function buildTurnoBtns() {
+  const c = document.getElementById("turnoBtns");
+  c.innerHTML = "";
+  SHIFTS.forEach(t => {
+    const btn = document.createElement("button");
+    btn.className = "turno-btn" + (t === turnoActual ? " active" : "");
+    btn.textContent = TURNOS[t].label + (t === turnoActual ? " ✓" : "");
+    btn.type = "button";
+    c.appendChild(btn);
+  });
+}
+
+function buildDiasRow() {
+  const c = document.getElementById("diasRow");
+  c.innerHTML = "";
+  for (let d = 0; d < 7; d++) {
+    const chip = document.createElement("div");
+    const isDesc = diasDescanso.includes(d);
+    const esOficial = TURNOS[turnoActual].descanso.includes(d);
+
+    chip.className = "dia-chip " + (isDesc ? "descanso" : "laboral");
+    if (!manualEditMode) chip.classList.add("readonly");
+
+    if (manualEditMode) {
+      chip.onclick = () => {
+        diasDescanso = isDesc ? diasDescanso.filter(x => x !== d) : [...diasDescanso, d];
+        ritmoCache.clear(); saveConfig(); buildDiasRow(); render();
+      };
+    }
+    if (esOficial) { chip.style.borderWidth = "3px"; chip.style.borderColor = isDesc ? "#00d4ff" : "#ffffff15"; }
+    chip.textContent = DIA_NOMBRES[d];
+    c.appendChild(chip);
+  }
+}
+
+function buildChecks() {
+  const c = document.getElementById("checksContainer");
+  c.innerHTML = "";
+  PERSONAS.forEach(p => {
+    const lbl = document.createElement("label");
+    lbl.className = "check-item";
+    lbl.innerHTML = `<input type="checkbox" value="${p}"> <span>Falta ${p}</span>`;
+    lbl.querySelector("input").checked = ausentes.includes(p);
+    lbl.querySelector("input").addEventListener("change", e => {
+      ausentes = e.target.checked ? [...ausentes, p] : ausentes.filter(x => x !== p);
+      saveConfig(); render();
+    });
+    c.appendChild(lbl);
+  });
+}
+
+// ── UTILIDADES ────────────────────────────────────────────────────────────
+function fmtDate(d) { return d.toLocaleDateString("es-MX",{weekday:"short",day:"2-digit",month:"short"}); }
+
+// ── 🔥 LÓGICA CORREGIDA ───────────────────────────────────────────────────
+
+/**
+ * ✅ Obtiene los días de descanso que corresponden a una fecha específica
+ * según el turno histórico.
+ */
+function getDescansoParaFecha(fecha) {
+  if (manualEditMode) return diasDescanso;
+  return TURNOS[calcularTurnoActual(fecha)].descanso;
+}
+
+/**
+ * ✅ Detecta día de cambio de turno (solo el ÚLTIMO día de cada bloque de 28 días)
+ */
+function esDiaDeCambio(fecha) {
+  const fechaMidnight = midnight(fecha);
+  const startMidnight = midnight(CYCLE_START);
+  const diasDesdeInicio = Math.floor((fechaMidnight - startMidnight) / 86400000);
+  // Es día de cambio si es el último día de un bloque de 28 días (días 27, 55, 83, etc.)
+  return diasDesdeInicio >= 0 && (diasDesdeInicio + 1) % SHIFT_DURATION === 0;
+}
+
+/**
+ * ✅ CORRECCIÓN: Verifica si una fecha es laboral SIN excluir días de cambio
+ * Solo excluye días de descanso según el turno.
+ */
+function esLaboral(fecha) {
+  return !getDescansoParaFecha(fecha).includes(fecha.getDay());
+}
+
+/**
+ * ✅ Cuenta SOLO días LABORALES entre ancla y fecha objetivo.
+ */
+function countWorkingDaysFromAnchor(targetDate) {
+  const start = midnight(ANCLA_RITMO);
+  const end = midnight(targetDate);
+  if (start.getTime() === end.getTime()) return 0;
+
+  const direction = end > start ? 1 : -1;
+  let count = 0;
+  let current = new Date(start);
+
+  while (current.getTime() !== end.getTime()) {
+    if (esLaboral(current)) count += direction;
+    current.setDate(current.getDate() + direction);
+  }
+  return count;
+}
+
+function getRitmoIndex(date) {
+  const key = `${midnight(date).toISOString()}_${manualEditMode ? diasDescanso.join(',') : 'auto'}`;
+  if (ritmoCache.has(key)) return ritmoCache.get(key);
+
+  const workingDaysDiff = countWorkingDaysFromAnchor(date);
+  const result = ((ANCLA_RITMO_IDX + workingDaysDiff) % 4 + 4) % 4;
+  ritmoCache.set(key, result);
+  return result;
+}
+
+function getResponsable(ritmoIdx) {
+  const fila = RITMOS[ritmoIdx];
+  for (let i = 0; i < fila.length; i++) {
+    if (!ausentes.includes(fila[i])) {
+      return { nombre:fila[i], rol: i===0 ? "Ritmo" : `Suple ${i}`, fila, posicion: i };
+    }
+  }
+  return { nombre:"Sin responsable", rol:"—", fila, posicion: -1 };
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function render() {
+  const fecha = parseInputDate(fechaInput.value);
+
+  turnoActual = calcularTurnoActual(fecha);
+  if (!manualEditMode) diasDescanso = [...TURNOS[turnoActual].descanso];
+
+  ritmoCache.clear();
+  buildTurnoBanner(); buildTurnoBtns(); buildDiasRow();
+
+  const isLab = esLaboral(fecha);
+  const esCambio = esDiaDeCambio(fecha);
+  const ri = getRitmoIndex(fecha);
+
+  const box = document.getElementById("resultBox");
+  const nameEl = document.getElementById("resultName");
+  const subEl = document.getElementById("resultSub");
+  const ritEl = document.getElementById("resultRitmo");
+
+  ritEl.textContent = `Ritmo ${ri+1} · ${fmtDate(fecha)}`;
+
+  if (!isLab) {
+    box.className = "result-wrap rest";
+    nameEl.textContent = "Día de Descanso";
+    subEl.textContent = `🔁 Ritmo ${ri+1} en pausa (se reanuda en próximo día laboral)`;
+  } else {
+    const resp = getResponsable(ri);
+    nameEl.textContent = resp.nombre;
+    if (esCambio) {
+      box.className = "result-wrap warn";
+      subEl.textContent = `⚡ Día de cambio de turno (se labora) · Ritmo ${ri+1}`;
+    } else if (resp.rol === "Ritmo") {
+      box.className = "result-wrap ok";
+      subEl.textContent = "✅ Responsable principal presente";
+    } else if (resp.nombre === "Sin responsable") {
+      box.className = "result-wrap danger";
+      subEl.textContent = "⚠️ Todos ausentes";
+    } else {
+      box.className = "result-wrap warn";
+      const chain = resp.fila.slice(0, resp.posicion).join(" → ");
+      subEl.textContent = `⚡ ${resp.rol} activo · Ausentes: ${chain || "Ninguno"}`;
+    }
+  }
+  renderTabla(fecha);
+}
+
+function renderTabla(desde) {
+  const tbody = document.getElementById("tablaProximos");
+  tbody.innerHTML = "";
+  const todayStr = midnight(new Date()).toISOString();
+
+  for (let i = 0; i < 14; i++) {
+    const d = new Date(midnight(desde));
+    d.setDate(d.getDate() + i);
+
+    const isLab = esLaboral(d);
+    const esCambio = esDiaDeCambio(d);
+    const esHoy = midnight(d).toISOString() === todayStr;
+    const ri = getRitmoIndex(d);
+
+    const tr = document.createElement("tr");
+    if (esHoy) tr.className = "hoy";
+    if (!isLab) tr.className = (tr.className + " desc").trim();
+
+    const respNombre = isLab ? RITMOS[ri][0] : "—";
+    let rolBadge = isLab ? `<span class="badge badge-r">Ritmo</span>` : `<span class="badge badge-d">Descanso</span>`;
+    if (esCambio) rolBadge = `<span class="badge badge-s">Cambio</span>`;
+
+    tr.innerHTML = `
+      <td>${fmtDate(d)}${esHoy ? ' <strong style="color:#00d4ff;font-size:0.72rem">HOY</strong>' : ''}</td>
+      <td>${DIA_NOMBRES[d.getDay()]}</td>
+      <td><span class="chip-dia ${isLab ? 'chip-lab' : 'chip-des'}">${esCambio ? "Cambio" : isLab ? "Laboral" : "Descanso"}</span></td>
+      <td>Ritmo ${ri+1}</td>
+      <td>${respNombre}</td>
+      <td>${rolBadge}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+// ── FUNCIONES GLOBALES (consola) ─────────────────────────────────────────
+window.activarEdicionManual = function() { manualEditMode = true; saveConfig(); actualizarLabels(); buildDiasRow(); console.log("✏️ Edición manual ACTIVADA"); };
+window.desactivarEdicionManual = function() { manualEditMode = false; diasDescanso = [...TURNOS[turnoActual].descanso]; ritmoCache.clear(); saveConfig(); actualizarLabels(); buildDiasRow(); render(); console.log("🔒 Días restaurados a oficiales"); };
+window.verificarConfig = function() {
+  const f = parseInputDate(fechaInput.value);
+  console.group("⚙️ Configuración TPM");
+  console.log("📅 Fecha consulta:", fmtDate(f));
+  console.log("🔄 Turno visual:", turnoActual, "| Histórico:", calcularTurnoActual(f));
+  console.log("🔁 ¿Es día de cambio?", esDiaDeCambio(f) ? "SÍ" : "NO");
+  console.log("😴 Días descanso (UI):", diasDescanso.map(d => DIA_NOMBRES[d]));
+  console.log("🚫 Ausentes:", ausentes.length ? ausentes : "Ninguno");
+  console.log("🎲 Ritmo:", getRitmoIndex(f) + 1, "→ Responsable:", getResponsable(getRitmoIndex(f)).nombre);
+  console.groupEnd();
+};
+window.recargarConfig = function() { ritmoCache.clear(); loadConfig(); buildTurnoBanner(); buildTurnoBtns(); buildDiasRow(); buildChecks(); render(); console.log("🔄 Configuración recargada"); };
+window.setDiasDescansoPersonalizados = setDiasDescansoPersonalizados;
+
+// 🔹 Verificar el 24 de mayo de 2026 (para depuración)
+console.log("📅 Verificación para 24/05/2026:");
+const fecha24Mayo = new Date(2026, 4, 24); // Mes 4 = mayo
+console.log("¿Es día de cambio?", esDiaDeCambio(fecha24Mayo));
+console.log("Turno en esa fecha:", calcularTurnoActual(fecha24Mayo));
+console.log("¿Es laboral?", esLaboral(fecha24Mayo)); // Debe ser true
+console.log("Días desde CYCLE_START:", Math.floor((midnight(fecha24Mayo) - midnight(CYCLE_START)) / 86400000));
+</script>
+</body>
+</html>c
