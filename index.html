@@ -69,34 +69,7 @@ tr.desc td { opacity:0.38; }
 <h1>📋 Reporte TPM</h1>
 <p class="subtitle">Ciclo: 28 días Noche → 28 días Mañana → 28 días Mixto 🔁</p>
 
-<div class="card">
-  <div class="card-title">🔄 Turno actual (calculado automáticamente)</div>
-  <div class="turno-banner" id="turnoBanner">
-    <div class="turno-nombre" id="turnoNombre">Cargando...</div>
-    <div class="turno-info" id="turnoFechas"></div>
-    <div class="turno-rest" id="turnoDescansos"></div>
-  </div>
-  <div class="turno-btns" id="turnoBtns"></div>
-</div>
-
-<div class="card">
-  <div class="card-title">😴 Días de descanso <span id="descLabel" style="color:#ffaa00;font-size:0.7rem">según turno</span></div>
-  <div class="dias-row" id="diasRow"></div>
-  <div class="edit-hint" id="editHint">💡 ¿Ajustes? Consola: <code>activarEdicionManual()</code> o <code>setDiasDescansoPersonalizados({Noche: [1,2], Mañana: [5,6], Mixto: [0,5,6]})</code></div>
-</div>
-
-<div class="card">
-  <div class="date-row">
-    <label>📅 Fecha:</label>
-    <input type="date" id="fechaInput">
-  </div>
-</div>
-
-<div class="card">
-  <div class="card-title">🚫 Marcar ausentes hoy</div>
-  <div class="check-row" id="checksContainer"></div>
-</div>
-
+<!-- ✅ 1. 👷 Responsable del Reporte TPM (PRIORIDAD) -->
 <div class="card">
   <div class="card-title">👷 Responsable del Reporte TPM</div>
   <div class="result-wrap ok" id="resultBox">
@@ -107,6 +80,39 @@ tr.desc td { opacity:0.38; }
   </div>
 </div>
 
+<!-- ✅ 2. 🚫 Marcar ausentes hoy -->
+<div class="card">
+  <div class="card-title">🚫 Marcar ausentes hoy</div>
+  <div class="check-row" id="checksContainer"></div>
+</div>
+
+<!-- ✅ 3. 🔄 Turno actual (calculado automáticamente) -->
+<div class="card">
+  <div class="card-title">🔄 Turno actual (calculado automáticamente)</div>
+  <div class="turno-banner" id="turnoBanner">
+    <div class="turno-nombre" id="turnoNombre">Cargando...</div>
+    <div class="turno-info" id="turnoFechas"></div>
+    <div class="turno-rest" id="turnoDescansos"></div>
+  </div>
+  <div class="turno-btns" id="turnoBtns"></div>
+</div>
+
+<!-- ✅ 4. 😴 Días de descanso -->
+<div class="card">
+  <div class="card-title">😴 Días de descanso <span id="descLabel" style="color:#ffaa00;font-size:0.7rem">según turno</span></div>
+  <div class="dias-row" id="diasRow"></div>
+  <div class="edit-hint" id="editHint">💡 ¿Ajustes? Consola: <code>activarEdicionManual()</code> o <code>setDiasDescansoPersonalizados({Noche: [1,2], Mañana: [5,6], Mixto: [0,5,6]})</code></div>
+</div>
+
+<!-- ✅ 5. 📅 Fecha -->
+<div class="card">
+  <div class="date-row">
+    <label>📅 Fecha:</label>
+    <input type="date" id="fechaInput">
+  </div>
+</div>
+
+<!-- ✅ 6. 📆 Próximos 14 días -->
 <div class="card">
   <div class="card-title">📆 Próximos 14 días</div>
   <div class="tabla-wrap">
@@ -508,4 +514,4 @@ console.log("¿Es laboral?", esLaboral(fecha24Mayo)); // Debe ser true
 console.log("Días desde CYCLE_START:", Math.floor((midnight(fecha24Mayo) - midnight(CYCLE_START)) / 86400000));
 </script>
 </body>
-</html>c
+</html>
