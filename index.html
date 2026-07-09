@@ -67,7 +67,8 @@ tr.desc td { opacity:0.38; }
 .rot-hint { display:none; font-size:0.72rem; color:#888; margin-bottom:8px; }
 .rot-grid {
   display: grid;
-  grid-template-columns: 32px 112px 20px 92px 20px 92px 20px 92px 20px 92px;
+  position: relative;
+  grid-template-columns: 32px 30px 112px 20px 92px 20px 92px 20px 92px 20px 92px;
   grid-auto-rows: 54px;
   min-width: max-content;
 }
@@ -78,11 +79,14 @@ tr.desc td { opacity:0.38; }
 }
 .rot-head { height:40px; font-weight:600; font-size:12.5px; background:#1a3a50; color:#88bbdd; text-transform:uppercase; letter-spacing:0.4px; }
 .rot-num  { background:#0f3460; color:#aaa; font-weight:600; position:sticky; left:0; z-index:3; }
-.rot-ritmo{ background:#0f3460; color:#00d4ff; font-weight:700; position:sticky; left:32px; z-index:3; box-shadow: 2px 0 6px rgba(0,0,0,0.35); justify-content:space-between; gap:6px; padding:0 10px; }
-.rot-head.rot-num, .rot-head.rot-ritmo { z-index:4; background:#1a4a6e; color:#00d4ff; }
+.rot-connector { background:#0f3460; position:sticky; left:32px; z-index:3; border-left:none; border-right:none; padding:0; }
+.rot-ritmo{ background:#0f3460; color:#00d4ff; font-weight:700; position:sticky; left:50px; z-index:3; box-shadow: 2px 0 6px rgba(0,0,0,0.35); justify-content:space-between; gap:6px; padding:0 10px; }
+.rot-head.rot-num, .rot-head.rot-ritmo, .rot-head.rot-connector { z-index:4; background:#1a4a6e; color:#00d4ff; }
 .rot-arrow { background:transparent; border:none; color:#c0392b; font-size:20px; font-weight:800; padding:0; }
 .rot-head.rot-arrow { background:transparent; }
 .rot-down { color:#c8960a; font-size:16px; font-weight:800; line-height:1; flex-shrink:0; }
+.rot-loop { grid-column: 2 / 3; grid-row: 2 / 7; position:relative; }
+.rot-loop svg { position:absolute; top:0; left:0; width:100%; height:100%; }
 
 /* ── Instrucciones ── */
 .instr-list { padding-left: 20px; display: flex; flex-direction: column; gap: 10px; }
@@ -100,9 +104,10 @@ tr.desc td { opacity:0.38; }
 /* ── Ajustes para pantallas pequeñas ── */
 @media (max-width: 480px) {
   .rot-hint { display:block; }
-  .rot-grid { grid-template-columns: 26px 84px 16px 72px 16px 72px 16px 72px 16px 72px; grid-auto-rows: 46px; }
+  .rot-grid { grid-template-columns: 26px 14px 84px 16px 72px 16px 72px 16px 72px 16px 72px; grid-auto-rows: 46px; }
   .rot-cell { font-size: 12.5px; padding: 2px 4px; }
-  .rot-ritmo { padding: 0 6px; }
+  .rot-connector { left:26px; }
+  .rot-ritmo { padding: 0 6px; left:40px; }
   .rot-arrow { font-size: 16px; }
   .rot-down { font-size: 13px; }
   .rot-head { font-size: 10.5px; height: 34px; }
@@ -178,6 +183,7 @@ tr.desc td { opacity:0.38; }
   <div class="tw">
     <div class="rot-grid">
       <div class="rot-cell rot-head rot-num"></div>
+      <div class="rot-cell rot-head rot-connector"></div>
       <div class="rot-cell rot-head rot-ritmo">Ritmo</div>
       <div class="rot-cell rot-head rot-arrow"></div>
       <div class="rot-cell rot-head">Suple 1</div>
@@ -187,6 +193,20 @@ tr.desc td { opacity:0.38; }
       <div class="rot-cell rot-head">Suple 3</div>
       <div class="rot-cell rot-head rot-arrow"></div>
       <div class="rot-cell rot-head">Suple 4</div>
+
+      <div class="rot-loop">
+        <svg viewBox="0 0 20 270" preserveAspectRatio="none">
+          <defs>
+            <marker id="loopArrowHead" markerWidth="4.5" markerHeight="4.5" refX="2.2" refY="2.2" orient="auto">
+              <polygon points="0,0 4.5,2.2 0,4.5" fill="#c8960a"/>
+            </marker>
+          </defs>
+          <path d="M 13 245 L 5 245 L 5 20 L 12 20"
+                fill="none" stroke="#c8960a" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"
+                marker-end="url(#loopArrowHead)"/>
+        </svg>
+      </div>
 
       <div class="rot-cell rot-num">1</div>
       <div class="rot-cell rot-ritmo">Christian <span class="rot-down">↓</span></div>
@@ -233,7 +253,7 @@ tr.desc td { opacity:0.38; }
       <div class="rot-cell">Alex</div>
 
       <div class="rot-cell rot-num">5</div>
-      <div class="rot-cell rot-ritmo">Miguel <span class="rot-down">↻</span></div>
+      <div class="rot-cell rot-ritmo">Miguel</div>
       <div class="rot-cell rot-arrow">→</div>
       <div class="rot-cell">Christian</div>
       <div class="rot-cell rot-arrow">→</div>
@@ -255,14 +275,14 @@ tr.desc td { opacity:0.38; }
     <li>Si la persona asignada (Ritmo) no asiste:
       <ul class="instr-sublist">
         <li>El <strong>Suple 1</strong> toma la responsabilidad del reporte.</li>
-        <li>Si también falta Suple 1, entra <strong>Suple 2</strong>; si tampoco está, entra <strong>Suple 3</strong>; y como último recurso, <strong>Suple 4</strong>.</li>
+        <li>Si también falta Suple 1, entra <strong>Suple 2</strong>; si tampoco está, entra <strong>Suple 3</strong>; si tampoco está, entra <strong>Suple 4</strong> como último recurso.</li>
       </ul>
     </li>
     <li>El ciclo <strong>no se detiene ni se “recuperan” turnos.</strong></li>
   </ol>
   <div class="instr-example">
     <div class="instr-example-title">💡 Ejemplo</div>
-    <p>Si hoy le toca a <strong>Christian</strong> y no vino, el <strong>Suple 1 (Vicente)</strong> realiza el reporte TPM.</p>
+    <p>Si hoy le toca a <strong>Christian (Ritmo 1)</strong> y no vino, el <strong>Suple 1 (Vicente)</strong> realiza el reporte TPM.</p>
     <p>Al día siguiente el ritmo avanza normalmente al siguiente número (<strong>Ritmo 2</strong>), por lo que el responsable original del día siguiente sigue siendo <strong>Vicente</strong>.</p>
     <p>Es decir: <strong>el sistema avanza un ritmo por día</strong>, independientemente de quién terminó haciendo el reporte ese día.</p>
   </div>
